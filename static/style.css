@@ -1,0 +1,622 @@
+/* style.css : habillage visuel du parcours mobile (carte violette arrondie, un écran affiché à la fois). */
+/* Aucune dépendance externe (pas de CDN, pas de framework CSS) : tout est ici. */
+
+:root {
+    --violet-700: #5b3fe0;
+    --violet-600: #6d5ce8;
+    --violet-500: #8578ee;
+    --violet-100: #ece8fc;
+    --violet-50: #f5f3ff;
+    --bg-page: #b9a8f5;
+    --texte-principal: #1f2333;
+    --texte-secondaire: #6b7280;
+    --blanc: #ffffff;
+    --bordure: #e6e1fb;
+    --rouge-erreur: #b3261e;
+    --rouge-erreur-bg: #fdecea;
+    --vert-succes: #16a34a;
+    --rayon-carte: 28px;
+    --rayon-controle: 16px;
+}
+
+* {
+    box-sizing: border-box; /* padding/bordure inclus dans la largeur déclarée -> tailles prévisibles sur petit écran */
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; /* police système = zéro dépendance réseau */
+    /* dégradé de fond qui reprend la palette violette de la maquette fournie, même si la mise en page devient verticale (mobile) */
+    background: radial-gradient(circle at 30% 0%, #cdbdfb, var(--bg-page) 60%);
+    min-height: 100dvh; /* 100dvh (dynamic viewport height) évite les sauts de mise en page dus aux barres d'adresse mobiles */
+    color: var(--texte-principal);
+}
+
+.page {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 1.5rem 1rem;
+    min-height: 100dvh;
+}
+
+/* la "carte" simule un écran d'app mobile posé sur le fond coloré : largeur plafonnée pour rester lisible même sur grand écran */
+.carte {
+    width: 100%;
+    max-width: 430px;
+    background: var(--blanc);
+    border-radius: var(--rayon-carte);
+    box-shadow: 0 30px 60px -20px rgba(60, 40, 140, 0.45);
+    padding: 1.25rem 1.5rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    min-height: min(760px, calc(100dvh - 3rem)); /* hauteur fixe type "écran de téléphone", plafonnée sur les petits viewports */
+}
+
+/* ===================== barre du haut (retour / progression / fermer) ===================== */
+
+.entete-carte {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 2.5rem; /* réservé même quand les boutons sont invisibles, pour que le reste du contenu ne "saute" pas */
+}
+
+.bouton-icone {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    border: none;
+    background: var(--violet-50);
+    color: var(--violet-700);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    visibility: hidden; /* masqué par défaut ; script.js le rend visible uniquement quand l'action a un sens (ex: pas de retour depuis l'accueil) */
+}
+
+.bouton-icone.visible {
+    visibility: visible;
+}
+
+.bouton-icone svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.points-progression {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.points-progression span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--bordure); /* point non atteint */
+}
+
+.points-progression span.point-actif {
+    background: var(--violet-600); /* étape courante ou déjà passée */
+    width: 16px; /* le point actif s'étire légèrement : repère visuel clair de la position dans le parcours */
+    border-radius: 999px;
+}
+
+/* ===================== bandeau d'erreur ===================== */
+
+.banniere-erreur {
+    background: var(--rouge-erreur-bg);
+    color: var(--rouge-erreur);
+    border-radius: var(--rayon-controle);
+    padding: 0.65rem 0.9rem;
+    font-size: 0.85rem;
+    margin-top: 0.75rem;
+}
+
+/* ===================== écrans (un seul visible à la fois, piloté par script.js) ===================== */
+
+.ecran {
+    display: none; /* état par défaut : caché ; script.js ajoute .actif à l'écran courant uniquement */
+    flex-direction: column;
+    flex: 1;
+    margin-top: 0.5rem;
+}
+
+.ecran.actif {
+    display: flex;
+}
+
+.icone-cercle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid var(--violet-600);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0.5rem auto 1rem;
+    color: var(--violet-600);
+    flex-shrink: 0;
+}
+
+.icone-cercle.icone-succes {
+    border-color: var(--vert-succes);
+    color: var(--vert-succes);
+}
+
+.icone-cercle svg {
+    width: 28px;
+    height: 28px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.titre-ecran {
+    text-align: center;
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0 0 0.35rem;
+}
+
+.sous-titre-ecran {
+    text-align: center;
+    color: var(--texte-secondaire);
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin: 0 0 1.25rem;
+}
+
+/* ===================== contrôles génériques ===================== */
+
+textarea {
+    width: 100%;
+    border: 1px solid var(--bordure);
+    background: var(--violet-50);
+    border-radius: var(--rayon-controle);
+    padding: 0.75rem 0.9rem;
+    font-family: inherit;
+    font-size: 0.95rem;
+    resize: vertical;
+    margin-bottom: 1rem;
+}
+
+textarea:focus {
+    outline: 2px solid var(--violet-500);
+    outline-offset: 1px;
+}
+
+.bouton-principal {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    background: var(--violet-600);
+    color: var(--blanc);
+    border: none;
+    border-radius: var(--rayon-controle);
+    padding: 0.95rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: auto; /* pousse le bouton en bas de la carte, quelle que soit la hauteur du contenu au-dessus */
+}
+
+.bouton-principal:disabled {
+    background: var(--bordure);
+    color: var(--texte-secondaire);
+    cursor: not-allowed;
+}
+
+.bouton-secondaire {
+    display: block;
+    text-align: center;
+    background: var(--violet-50);
+    color: var(--violet-700);
+    border: 1px solid var(--violet-100);
+    border-radius: var(--rayon-controle);
+    padding: 0.85rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.6rem;
+}
+
+.bouton-fantome {
+    display: block;
+    text-align: center;
+    background: none;
+    border: none;
+    color: var(--texte-secondaire);
+    font-size: 0.9rem;
+    padding: 0.7rem;
+    cursor: pointer;
+    margin-top: 0.2rem;
+}
+
+/* ===================== tuiles de choix (Encoder/Décoder, Oui/Non, AES/RSA...) ===================== */
+
+.pile-tuiles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.pile-tuiles-horizontale {
+    flex-direction: row; /* AES / RSA côte à côte : ce sont 2 choix courts, pas besoin d'empiler verticalement */
+}
+
+.tuile {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-align: left;
+    background: var(--violet-50);
+    border: 2px solid transparent;
+    border-radius: var(--rayon-controle);
+    padding: 0.9rem 1rem;
+    cursor: pointer;
+}
+
+.tuile.selectionnee {
+    border-color: var(--violet-600);
+    background: var(--violet-100);
+}
+
+.tuile-icone {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    background: var(--blanc);
+    color: var(--violet-600);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.tuile-icone svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.tuile-texte {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.tuile-texte strong {
+    font-size: 0.98rem;
+}
+
+.tuile-texte small {
+    color: var(--texte-secondaire);
+    font-size: 0.8rem;
+}
+
+/* ===================== sélecteur à 2 segments (génération auto / clé manuelle) ===================== */
+
+.controle-segmente {
+    display: flex;
+    background: var(--violet-50);
+    border-radius: var(--rayon-controle);
+    padding: 0.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.segment {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 0.55rem 0.5rem;
+    border-radius: calc(var(--rayon-controle) - 4px);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--texte-secondaire);
+    cursor: pointer;
+}
+
+.segment.selectionne {
+    background: var(--blanc);
+    color: var(--violet-700);
+    box-shadow: 0 1px 4px rgba(60, 40, 140, 0.15);
+}
+
+.bloc-conditionnel {
+    margin-bottom: 1rem;
+}
+
+.masque {
+    display: none !important; /* !important : doit gagner sur .ecran.actif{display:flex} et sur les display par défaut des enfants */
+}
+
+/* ===================== champ de saisie libre (facteur de redondance N, sans plafond) ===================== */
+
+.champ-n-libre {
+    display: block;
+    margin-bottom: 0.4rem;
+}
+
+.champ-n-libre span {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--texte-secondaire);
+    margin-bottom: 0.35rem;
+}
+
+.champ-n-libre input {
+    width: 100%;
+    border: 1px solid var(--bordure);
+    background: var(--violet-50);
+    border-radius: var(--rayon-controle);
+    padding: 0.75rem 0.9rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--texte-principal);
+}
+
+.champ-n-libre input:focus {
+    outline: 2px solid var(--violet-500);
+    outline-offset: 1px;
+}
+
+.astuce-n {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--texte-secondaire);
+    margin: 0 0 1.25rem;
+}
+
+.astuce-n.avertissement {
+    color: var(--rouge-erreur); /* ex: N hors limites techniques (1 à 255) */
+}
+
+/* ===================== bouton "i" (aide contextuelle sur l'étape en cours) ===================== */
+
+.ligne-info-etape {
+    display: flex;
+    justify-content: flex-end;
+    margin: -0.25rem 0 -0.25rem; /* remonte le bouton contre le haut de l'écran, sans pousser le reste du contenu */
+}
+
+.bouton-info {
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    border: none;
+    background: var(--violet-50);
+    color: var(--violet-600);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.bouton-info svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+}
+
+/* ===================== popup d'aide (bottom sheet mobile) ===================== */
+
+.superposition-info {
+    position: fixed;
+    inset: 0;
+    background: rgba(31, 35, 51, 0.55); /* fond assombri : concentre l'attention sur la popup, ferme au clic (voir script.js) */
+    display: flex;
+    align-items: flex-end; /* remonte depuis le bas de l'écran, plus naturel sur mobile qu'une modale centrée */
+    justify-content: center;
+    z-index: 50;
+    padding: 0;
+}
+
+.modale-info {
+    background: var(--blanc);
+    width: 100%;
+    max-width: 430px; /* aligné sur la largeur de la carte principale */
+    max-height: 75vh;
+    overflow-y: auto;
+    border-radius: 24px 24px 0 0;
+    padding: 1.5rem 1.5rem 2rem;
+    position: relative;
+}
+
+.bouton-fermer-modale {
+    position: absolute;
+    top: 0.9rem;
+    right: 0.9rem;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    border: none;
+    background: var(--violet-50);
+    color: var(--violet-700);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.bouton-fermer-modale svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+}
+
+#modale-info-titre {
+    margin: 0 2rem 0.75rem 0; /* marge à droite pour ne pas passer sous le bouton fermer */
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+#modale-info-corps {
+    font-size: 0.9rem;
+    color: var(--texte-secondaire);
+    line-height: 1.55;
+}
+
+#modale-info-corps p {
+    margin: 0 0 0.75rem;
+}
+
+#modale-info-corps strong {
+    color: var(--texte-principal);
+}
+
+.exemple-info {
+    background: var(--violet-50);
+    border-radius: 14px;
+    padding: 0.8rem 1rem;
+    margin: 0.75rem 0;
+    font-size: 0.85rem;
+    color: var(--texte-principal);
+    line-height: 1.5;
+}
+
+/* ===================== zone de sélection d'image ===================== */
+
+.zone-upload {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 9rem;
+    border: 2px dashed var(--bordure);
+    border-radius: var(--rayon-controle);
+    background: var(--violet-50);
+    color: var(--texte-secondaire);
+    font-size: 0.88rem;
+    text-align: center;
+    padding: 1rem;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.apercu-image {
+    max-width: 100%;
+    max-height: 12rem;
+    border-radius: calc(var(--rayon-controle) - 4px);
+    display: block;
+}
+
+.apercu-resultat {
+    margin: 0 auto 1rem;
+    box-shadow: 0 8px 20px -8px rgba(60, 40, 140, 0.4);
+}
+
+.statut-inspection {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--texte-secondaire);
+    margin: -0.5rem 0 1rem;
+}
+
+/* ===================== bloc "clé générée" et message décodé (mise en avant façon code) ===================== */
+
+.bloc-cle-generee {
+    background: var(--violet-50);
+    border-radius: var(--rayon-controle);
+    padding: 0.9rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.astuce-cle {
+    font-size: 0.8rem;
+    color: var(--texte-secondaire);
+    margin: 0 0 0.5rem;
+}
+
+.code-cle {
+    font-family: ui-monospace, "Courier New", monospace;
+    font-size: 0.8rem;
+    background: var(--blanc);
+    border: 1px solid var(--bordure);
+    border-radius: 10px;
+    padding: 0.6rem 0.7rem;
+    word-break: break-all; /* les clés PEM RSA sont longues et sans espaces : il faut pouvoir les couper n'importe où */
+    max-height: 8rem;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}
+
+.code-message {
+    margin: 0 0 1rem;
+}
+
+/* ===================== écran de comparaison ===================== */
+
+.cartes-comparaison {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+}
+
+.carte-comparaison {
+    background: var(--violet-50);
+    border-radius: var(--rayon-controle);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.carte-comparaison .n-label {
+    font-weight: 700;
+    color: var(--violet-700);
+    min-width: 2.5rem;
+}
+
+.carte-comparaison .mesures {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-size: 0.78rem;
+    color: var(--texte-secondaire);
+    text-align: right;
+}
+
+.carte-comparaison .robustesse {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--texte-principal);
+}
+
+.conclusion-comparaison {
+    font-size: 0.82rem;
+    color: var(--texte-secondaire);
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+.chargement {
+    text-align: center;
+    color: var(--texte-secondaire);
+    font-size: 0.9rem;
+    padding: 1rem;
+}

@@ -1,0 +1,206 @@
+<!-- index.html : parcours mobile en étapes (wizard). Une seule page, les "écrans" sont des <section> -->
+<!-- que script.js montre/masque une par une - aucun rechargement de page entre les étapes. -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Stéganographie</title>
+    <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+<div class="page">
+    <main class="carte" id="carte">
+
+        <!-- barre du haut : retour / points de progression / recommencer -->
+        <!-- masquée entièrement sur l'écran d'accueil (rien à quoi revenir, rien en cours) -->
+        <header class="entete-carte" id="entete-carte">
+            <button type="button" class="bouton-icone" id="bouton-retour" aria-label="Étape précédente">
+                <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" /></svg>
+            </button>
+            <div class="points-progression" id="points-progression"></div>
+            <button type="button" class="bouton-icone" id="bouton-fermer" aria-label="Recommencer">
+                <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+        </header>
+
+        <!-- bandeau d'erreur générique, réutilisé par tous les écrans -->
+        <div class="banniere-erreur masque" id="banniere-erreur"></div>
+
+        <!-- ================= ACCUEIL ================= -->
+        <section class="ecran actif" data-ecran="accueil">
+            <div class="icone-cercle">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M8 12.5l2.5 2.5L16 9.5" /></svg>
+            </div>
+            <h1 class="titre-ecran">Stéganographie</h1>
+            <p class="sous-titre-ecran">Cachez un message secret dans une image, ou révélez-en un.</p>
+
+            <div class="pile-tuiles">
+                <button type="button" class="tuile" data-choix-action="encoder">
+                    <span class="tuile-icone"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 018 0v3" /></svg></span>
+                    <span class="tuile-texte"><strong>Encoder</strong><small>Cacher un message dans une image</small></span>
+                </button>
+                <button type="button" class="tuile" data-choix-action="decoder">
+                    <span class="tuile-icone"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 017.8-1.3" /></svg></span>
+                    <span class="tuile-texte"><strong>Décoder</strong><small>Révéler un message caché</small></span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= ENCODER : message ================= -->
+        <section class="ecran" data-ecran="message">
+            <div class="icone-cercle"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4V5z" /></svg></div>
+            <h1 class="titre-ecran">Votre message</h1>
+            <p class="sous-titre-ecran">Le texte que vous voulez cacher dans l'image</p>
+            <textarea id="champ-message" rows="5" placeholder="Tapez votre message secret ici"></textarea>
+            <button type="button" class="bouton-principal" id="bouton-suivant-message">Suivant</button>
+        </section>
+
+        <!-- ================= ENCODER : chiffrement (oui/non) ================= -->
+        <section class="ecran" data-ecran="chiffrement">
+            <div class="icone-cercle"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" /></svg></div>
+            <h1 class="titre-ecran">Chiffrement</h1>
+            <p class="sous-titre-ecran">Voulez-vous chiffrer votre message avant de le cacher ?</p>
+            <div class="pile-tuiles">
+                <button type="button" class="tuile" data-choix-chiffrement="oui">
+                    <span class="tuile-texte"><strong>Oui</strong><small>Ajoute une couche de sécurité (AES ou RSA)</small></span>
+                </button>
+                <button type="button" class="tuile" data-choix-chiffrement="non">
+                    <span class="tuile-texte"><strong>Non</strong><small>Le message reste caché mais en clair</small></span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ================= ENCODER : algorithme + clé (uniquement si chiffrement = oui) ================= -->
+        <section class="ecran" data-ecran="algo">
+            <div class="icone-cercle"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4" /><path d="M11 12l9-9M17 6l2 2M14 9l2 2" /></svg></div>
+            <h1 class="titre-ecran">Algorithme</h1>
+            <p class="sous-titre-ecran">Choisissez comment chiffrer votre message</p>
+
+            <div class="pile-tuiles pile-tuiles-horizontale">
+                <button type="button" class="tuile" data-choix-algo="AES">
+                    <span class="tuile-texte"><strong>AES</strong><small>Clé symétrique (mot de passe)</small></span>
+                </button>
+                <button type="button" class="tuile" data-choix-algo="RSA">
+                    <span class="tuile-texte"><strong>RSA</strong><small>Clé publique / privée</small></span>
+                </button>
+            </div>
+
+            <div class="bloc-conditionnel masque" id="bloc-mode-cle">
+                <div class="controle-segmente" id="controle-mode-cle">
+                    <button type="button" class="segment" data-mode-cle="auto">Génération automatique</button>
+                    <button type="button" class="segment" data-mode-cle="manuel">Ma propre clé</button>
+                </div>
+                <textarea id="champ-cle-manuelle" class="bloc-conditionnel masque" rows="3"></textarea>
+            </div>
+
+            <button type="button" class="bouton-principal" id="bouton-suivant-algo" disabled>Suivant</button>
+        </section>
+
+        <!-- ================= ENCODER : image ================= -->
+        <section class="ecran" data-ecran="image_encoder">
+            <div class="icone-cercle"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="1.6" /><path d="M4 17l5-5 3 3 4-4 4 4" /></svg></div>
+            <h1 class="titre-ecran">Image</h1>
+            <p class="sous-titre-ecran">Choisissez l'image PNG qui cachera le message</p>
+            <label class="zone-upload" id="zone-upload-encoder">
+                <span class="zone-upload-texte" id="zone-upload-encoder-texte">Toucher pour choisir une image PNG</span>
+                <img class="apercu-image masque" id="apercu-image-encoder" alt="aperçu" />
+                <input type="file" accept="image/png" id="champ-image-encoder" hidden />
+            </label>
+            <button type="button" class="bouton-principal" id="bouton-suivant-image" disabled>Suivant</button>
+        </section>
+
+        <!-- ================= ENCODER : redondance ================= -->
+        <section class="ecran" data-ecran="redondance">
+            <div class="ligne-info-etape">
+                <button type="button" class="bouton-info" id="bouton-info-redondance" aria-label="C'est quoi la redondance ?">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><line x1="12" y1="11" x2="12" y2="16.5" /><circle cx="12" cy="7.5" r="0.75" fill="currentColor" stroke="none" /></svg>
+                </button>
+            </div>
+            <div class="icone-cercle"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="4.5" rx="1.5" /><rect x="4" y="10" width="16" height="4.5" rx="1.5" /><rect x="4" y="16" width="16" height="4.5" rx="1.5" /></svg></div>
+            <h1 class="titre-ecran">Redondance</h1>
+            <p class="sous-titre-ecran">Combien de fois répéter chaque caractère du message ? (touchez le <strong>i</strong> ci-dessus pour un exemple)</p>
+            <label class="champ-n-libre">
+                <span>Facteur de redondance (N)</span>
+                <input type="number" id="champ-n-libre" min="1" step="1" inputmode="numeric" />
+            </label>
+            <p class="astuce-n" id="astuce-n">N=1 = aucune redondance (LSB classique)</p>
+            <button type="button" class="bouton-principal" id="bouton-encoder-maintenant">Encoder maintenant</button>
+        </section>
+
+        <!-- ================= ENCODER : résultat ================= -->
+        <section class="ecran" data-ecran="resultat_encoder">
+            <div class="icone-cercle icone-succes"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M8 12.5l2.5 2.5L16 9.5" /></svg></div>
+            <h1 class="titre-ecran">Message caché !</h1>
+            <img class="apercu-image apercu-resultat" id="image-resultat" alt="image encodée" />
+
+            <div class="bloc-cle-generee masque" id="bloc-cle-generee">
+                <p class="astuce-cle">Conservez cette clé : elle est indispensable pour déchiffrer le message plus tard.</p>
+                <div class="code-cle" id="texte-cle-generee"></div>
+                <button type="button" class="bouton-fantome" id="bouton-copier-cle">Copier la clé</button>
+            </div>
+
+            <a class="bouton-principal" id="lien-telechargement" download="image_stego.png">Télécharger l'image</a>
+            <button type="button" class="bouton-secondaire" id="bouton-comparer-depuis-encodeur">Comparer les niveaux de redondance</button>
+            <button type="button" class="bouton-fantome" id="bouton-recommencer-1">Recommencer</button>
+        </section>
+
+        <!-- ================= DECODER : image ================= -->
+        <section class="ecran" data-ecran="image_decoder">
+            <div class="icone-cercle"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="9" cy="10" r="1.6" /><path d="M4 17l5-5 3 3 4-4 4 4" /></svg></div>
+            <h1 class="titre-ecran">Image à décoder</h1>
+            <p class="sous-titre-ecran">Choisissez l'image contenant le message caché</p>
+            <label class="zone-upload" id="zone-upload-decoder">
+                <span class="zone-upload-texte" id="zone-upload-decoder-texte">Toucher pour choisir une image PNG</span>
+                <img class="apercu-image masque" id="apercu-image-decoder" alt="aperçu" />
+                <input type="file" accept="image/png" id="champ-image-decoder" hidden />
+            </label>
+            <p class="statut-inspection masque" id="statut-inspection"></p>
+            <button type="button" class="bouton-principal masque" id="bouton-suivant-image-decoder"></button>
+        </section>
+
+        <!-- ================= DECODER : clé secrète (uniquement si le message est chiffré) ================= -->
+        <section class="ecran" data-ecran="cle_decoder">
+            <div class="icone-cercle"><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4" /><path d="M11 12l9-9M17 6l2 2M14 9l2 2" /></svg></div>
+            <h1 class="titre-ecran">Clé secrète</h1>
+            <p class="sous-titre-ecran" id="sous-titre-cle-decoder">Ce message est chiffré, entrez la clé pour le déchiffrer</p>
+            <textarea id="champ-cle-decodage" rows="4" placeholder="Mot de passe ou clé privée"></textarea>
+            <button type="button" class="bouton-principal" id="bouton-decoder-maintenant">Décoder</button>
+        </section>
+
+        <!-- ================= DECODER : résultat ================= -->
+        <section class="ecran" data-ecran="resultat_decoder">
+            <div class="icone-cercle icone-succes"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M8 12.5l2.5 2.5L16 9.5" /></svg></div>
+            <h1 class="titre-ecran">Message révélé</h1>
+            <pre class="code-cle code-message" id="texte-message-decode"></pre>
+            <button type="button" class="bouton-principal" id="bouton-copier-message">Copier le message</button>
+            <button type="button" class="bouton-secondaire" id="bouton-comparer-depuis-decodeur">Comparer les niveaux de redondance</button>
+            <button type="button" class="bouton-fantome" id="bouton-recommencer-2">Recommencer</button>
+        </section>
+
+        <!-- ================= COMPARER ================= -->
+        <section class="ecran" data-ecran="comparer">
+            <div class="icone-cercle"><svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7" /></svg></div>
+            <h1 class="titre-ecran">Comparaison</h1>
+            <p class="sous-titre-ecran">Robustesse et capacité selon le facteur de redondance</p>
+            <div id="cartes-comparaison" class="cartes-comparaison"></div>
+            <p class="conclusion-comparaison" id="conclusion-comparaison"></p>
+            <button type="button" class="bouton-principal" id="bouton-retour-comparaison">Retour</button>
+        </section>
+
+    </main>
+
+    <!-- popup d'aide générique : n'importe quel bouton "i" peut l'ouvrir avec son propre titre/texte (voir script.js) -->
+    <div class="superposition-info masque" id="superposition-info">
+        <div class="modale-info">
+            <button type="button" class="bouton-fermer-modale" id="bouton-fermer-modale-info" aria-label="Fermer">
+                <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+            <h2 id="modale-info-titre"></h2>
+            <div id="modale-info-corps"></div>
+        </div>
+    </div>
+</div>
+<script src="/static/script.js"></script>
+</body>
+</html>
